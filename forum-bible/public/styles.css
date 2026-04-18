@@ -235,3 +235,30 @@ pre {
   border: 1px solid #ccc;
   resize: vertical;
 }
+
+.site-footer {
+  text-align: center;
+  padding: 28px 16px 12px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  opacity: 0.75;
+}
+
+.site-footer p {
+  margin: 4px 0;
+}
+
+.site-footer a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
+}
+
+.site-footer .small {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
