@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -11,13 +11,13 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
-const model = process.env.MODEL || 'gpt-5.4';
+const model = process.env.MODEL || 'claude-sonnet-4-6';
 
-if (!process.env.OPENAI_API_KEY) {
-  console.warn('OPENAI_API_KEY is not set. API requests will fail until it is provided.');
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.warn('ANTHROPIC_API_KEY is not set. API requests will fail until it is provided.');
 }
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 const sharedPerspective = `
 You are helping a Bible student produce concise, forum-ready material from a consistent theological perspective.
@@ -42,117 +42,119 @@ Core perspective to follow:
 `;
 
 const explainSchema = {
-  type: 'json_schema',
-  name: 'forum_bible_explain_response',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    properties: {
-      mode: { type: 'string' },
-      title: { type: 'string' },
-      whatItSays: { type: 'string' },
-      whyItSaysIt: { type: 'string' },
-      lexicalNote: { type: 'string' },
-      authorityReferences: {
-        type: 'array',
-        minItems: 3,
-        maxItems: 3,
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          properties: {
-            author: { type: 'string' },
-            work: { type: 'string' },
-            note: { type: 'string' }
-          },
-          required: ['author', 'work', 'note']
-        }
-      },
-      furtherScriptures: {
-        type: 'array',
-        items: { type: 'string' }
-      },
-      forumReadyText: { type: 'string' }
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    mode: { type: 'string' },
+    title: { type: 'string' },
+    whatItSays: { type: 'string' },
+    whyItSaysIt: { type: 'string' },
+    lexicalNote: { type: 'string' },
+    authorityReferences: {
+  type: 'array',
+  items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          author: { type: 'string' },
+          work: { type: 'string' },
+          note: { type: 'string' }
+        },
+        required: ['author', 'work', 'note']
+      }
     },
-    required: [
-      'mode',
-      'title',
-      'whatItSays',
-      'whyItSaysIt',
-      'lexicalNote',
-      'authorityReferences',
-      'furtherScriptures',
-      'forumReadyText'
-    ]
-  }
+    furtherScriptures: {
+      type: 'array',
+      items: { type: 'string' }
+    },
+    forumReadyText: { type: 'string' }
+  },
+  required: [
+    'mode',
+    'title',
+    'whatItSays',
+    'whyItSaysIt',
+    'lexicalNote',
+    'authorityReferences',
+    'furtherScriptures',
+    'forumReadyText'
+  ]
 };
 
 const respondSchema = {
-  type: 'json_schema',
-  name: 'forum_bible_respond_response',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    properties: {
-      mode: { type: 'string' },
-      title: { type: 'string' },
-      claimSummary: { type: 'string' },
-      mainIssue: { type: 'string' },
-      lexicalNote: { type: 'string' },
-      suggestedResponse: { type: 'string' },
-      supportingScriptures: {
-        type: 'array',
-        items: { type: 'string' }
-      },
-      authorityReferences: {
-        type: 'array',
-        minItems: 3,
-        maxItems: 3,
-        items: {
-          type: 'object',
-          additionalProperties: false,
-          properties: {
-            author: { type: 'string' },
-            work: { type: 'string' },
-            note: { type: 'string' }
-          },
-          required: ['author', 'work', 'note']
-        }
-      },
-      forumReadyText: { type: 'string' }
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    mode: { type: 'string' },
+    title: { type: 'string' },
+    claimSummary: { type: 'string' },
+    mainIssue: { type: 'string' },
+    lexicalNote: { type: 'string' },
+    suggestedResponse: { type: 'string' },
+    supportingScriptures: {
+      type: 'array',
+      items: { type: 'string' }
     },
-    required: [
-      'mode',
-      'title',
-      'claimSummary',
-      'mainIssue',
-      'lexicalNote',
-      'suggestedResponse',
-      'supportingScriptures',
-      'authorityReferences',
-      'forumReadyText'
-    ]
-  }
+   authorityReferences: {
+  type: 'array',
+  items: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          author: { type: 'string' },
+          work: { type: 'string' },
+          note: { type: 'string' }
+        },
+        required: ['author', 'work', 'note']
+      }
+    },
+    forumReadyText: { type: 'string' }
+  },
+  required: [
+    'mode',
+    'title',
+    'claimSummary',
+    'mainIssue',
+    'lexicalNote',
+    'suggestedResponse',
+    'supportingScriptures',
+    'authorityReferences',
+    'forumReadyText'
+  ]
 };
 
 const refineSchema = {
-  type: 'json_schema',
-  name: 'forum_bible_refine_response',
-  strict: true,
-  schema: {
-    type: 'object',
-    additionalProperties: false,
-    properties: {
-      refinedText: { type: 'string' }
-    },
-    required: ['refinedText']
-  }
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    refinedText: { type: 'string' }
+  },
+  required: ['refinedText']
 };
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+async function callClaude({ system, userPrompt, schema }) {
+  const response = await client.messages.create({
+    model,
+    max_tokens: 4096,
+    system,
+    messages: [{ role: 'user', content: userPrompt }],
+    output_config: {
+      format: {
+        type: 'json_schema',
+        schema
+      }
+    }
+  });
+
+  const textBlock = response.content.find((b) => b.type === 'text');
+  if (!textBlock) {
+    throw new Error('No text response from Claude.');
+  }
+  return JSON.parse(textBlock.text);
+}
 
 app.post('/api/generate', async (req, res) => {
   try {
@@ -167,12 +169,12 @@ app.post('/api/generate', async (req, res) => {
     }
 
     const cleanInput = input.trim();
-    let instructions = sharedPerspective;
-    let prompt = '';
+    let system = sharedPerspective;
+    let userPrompt = '';
     let schema = explainSchema;
 
     if (mode === 'explain') {
-      instructions += `
+      system += `
 Task type: Explain a scripture passage.
 
 Response rules:
@@ -190,17 +192,14 @@ Response rules:
 - Build a final forumReadyText block that is concise, calm, easy to paste into a forum, and written in plain language.
 - Avoid over-academic language.
 - Avoid unnecessary hedging.
-- Return valid JSON only.
 `;
 
-      prompt = `
-Scripture reference: ${cleanInput}
+      userPrompt = `Scripture reference: ${cleanInput}
 
-Create a concise, clear explanation of this passage from the stated perspective.
-`;
+Create a concise, clear explanation of this passage from the stated perspective.`;
       schema = explainSchema;
     } else if (mode === 'respond') {
-      instructions += `
+      system += `
 Task type: Respond to someone else's theological comment or claim.
 
 Response rules:
@@ -220,30 +219,18 @@ Response rules:
 - Include supporting scriptures that genuinely strengthen the reply.
 - Build a final forumReadyText block that reads like a ready-to-post reply.
 - The forumReadyText should be shorter and smoother than the suggestedResponse.
-- Return valid JSON only.
 `;
 
-      prompt = `
-Comment or claim to address:
+      userPrompt = `Comment or claim to address:
 ${cleanInput}
 
-Create a concise, helpful response from the stated perspective.
-`;
+Create a concise, helpful response from the stated perspective.`;
       schema = respondSchema;
     } else {
       return res.status(400).json({ error: 'Invalid mode selected.' });
     }
 
-    const response = await client.responses.create({
-      model,
-      instructions,
-      input: prompt,
-      text: {
-        format: schema
-      }
-    });
-
-    const parsed = JSON.parse(response.output_text);
+    const parsed = await callClaude({ system, userPrompt, schema });
     return res.json(parsed);
   } catch (error) {
     console.error('Generation failed:', error);
@@ -260,8 +247,7 @@ app.post('/api/refine', async (req, res) => {
       return res.status(400).json({ error: 'Please enter some text to refine.' });
     }
 
-    const instructions = `
-You are refining a forum reply written from a careful Jewish dispensational perspective.
+    const system = `You are refining a forum reply written from a careful Jewish dispensational perspective.
 
 Rules:
 - Do NOT change the theology or argument.
@@ -270,26 +256,13 @@ Rules:
 - Improve clarity, flow, readability, and force of wording.
 - Keep the tone calm, respectful, confident, and suitable for a public Christian discussion forum.
 - Tighten phrasing where possible.
-- Keep it plain and natural, not academic.
-- Return valid JSON only.
-`;
+- Keep it plain and natural, not academic.`;
 
-    const prompt = `
-Refine the following forum reply without changing its meaning:
+    const userPrompt = `Refine the following forum reply without changing its meaning:
 
-${text.trim()}
-`;
+${text.trim()}`;
 
-    const response = await client.responses.create({
-      model,
-      instructions,
-      input: prompt,
-      text: {
-        format: refineSchema
-      }
-    });
-
-    const parsed = JSON.parse(response.output_text);
+    const parsed = await callClaude({ system, userPrompt, schema: refineSchema });
     return res.json(parsed);
   } catch (error) {
     console.error('Refine failed:', error);
