@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Forum-Bible</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="card hero">
+        <div>
+          <p class="eyebrow">Forum-ready Bible notes and replies</p>
+          <h1>Forum-Bible</h1>
+          <p class="subtitle">
+            Explain a passage in plain language or respond to someone else's comment from a
+            careful Jewish dispensational perspective.
+          </p>
+        </div>
+      </section>
+
+      <section class="card form-card">
+        <div class="mode-switch" role="tablist" aria-label="Mode selector">
+          <button id="modeExplain" class="mode-btn active" type="button">Explain Scripture</button>
+          <button id="modeRespond" class="mode-btn secondary" type="button">Respond to Comment</button>
+          <button id="refineBtn" class="secondary" type="button">Refine</button>
+        </div>
+
+        <label id="inputLabel" for="mainInput">Scripture reference</label>
+        <textarea
+          id="mainInput"
+          rows="5"
+          placeholder="e.g. Hebrews 2:14-18 or Matthew 12"
+        ></textarea>
+
+        <div class="form-actions">
+          <button id="submitBtn" type="button">Generate</button>
+          <button id="copyBtn" class="secondary" type="button">Copy text</button>
+        </div>
+
+        <p id="inputHint" class="hint">
+          Example references: Hebrews 1, Psalm 102, Matthew 12:22-32, 1 Thessalonians 4:17
+        </p>
+      </section>
+
+      <section id="status" class="status" aria-live="polite"></section>
+
+      <section id="results" class="results hidden">
+        <div class="card section-card">
+          <div class="section-header">
+            <h2 id="resultTitle"></h2>
+          </div>
+        </div>
+
+        <div id="explainResults" class="result-group hidden">
+          <div class="card section-card">
+            <h3>What it says</h3>
+            <p id="whatItSays"></p>
+          </div>
+
+          <div class="card section-card">
+            <h3>Why it says it</h3>
+            <p id="whyItSaysIt"></p>
+          </div>
+
+          <div id="explainLexicalCard" class="card section-card hidden">
+            <h3>Key word note</h3>
+            <p id="explainLexicalNote"></p>
+          </div>
+
+          <div class="card section-card">
+            <h3>Further scriptures</h3>
+            <div id="furtherScriptures"></div>
+          </div>
+        </div>
+
+        <div id="respondResults" class="result-group hidden">
+          <div class="card section-card">
+            <h3>Claim being addressed</h3>
+            <p id="claimSummary"></p>
+          </div>
+
+          <div class="card section-card">
+            <h3>Main issue</h3>
+            <p id="mainIssue"></p>
+          </div>
+
+          <div id="respondLexicalCard" class="card section-card hidden">
+            <h3>Key word note</h3>
+            <p id="respondLexicalNote"></p>
+          </div>
+
+          <div class="card section-card">
+            <h3>Suggested response</h3>
+            <p id="suggestedResponse"></p>
+          </div>
+
+          <div class="card section-card">
+            <h3>Supporting scriptures</h3>
+            <div id="supportingScriptures"></div>
+          </div>
+        </div>
+
+        <div class="card section-card">
+          <h3>Authority references</h3>
+          <div id="authorityReferences" class="authority-list"></div>
+        </div>
+
+        <div class="card section-card">
+          <h3>Forum-ready text (editable)</h3>
+<textarea id="forumReadyText" rows="10" class="forum-text"></textarea>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js?v=4"></script>
+  </body>
+</html>
