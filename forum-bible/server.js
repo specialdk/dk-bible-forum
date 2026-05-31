@@ -1,8 +1,13 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import Anthropic from '@anthropic-ai/sdk';
+import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+import { ensureTables } from './db.js';
+import authRouter from './auth.js';
+import studiesRouter from './studies.js';
 
 dotenv.config();
 
@@ -132,7 +137,11 @@ const refineSchema = {
   required: ['refinedText']
 };
 
+app.set('trust proxy', 1);
 app.use(express.json({ limit: '1mb' }));
+app.use(cookieParser());
+app.use('/api/auth', authRouter);
+app.use('/api/studies', studiesRouter);
 app.use(express.static(path.join(__dirname, 'public')));
 
 async function callClaude({ system, userPrompt, schema }) {
@@ -275,6 +284,11 @@ app.get('/health', (_req, res) => {
   res.json({ ok: true, app: 'Forum-Bible' });
 });
 
-app.listen(port, () => {
-  console.log(`Forum-Bible running on port ${port}`);
-});
+ensureTables()
+  .then(() => {
+    app.listen(port, () => console.log(`Forum-Bible running on port ${port}`));
+  })
+  .catch((err) => {
+    console.error('Database setup failed:', err);
+    process.exit(1);
+  });

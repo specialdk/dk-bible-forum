@@ -1,8 +1,9 @@
 // Forum-Bible service worker
-// Minimal version: caches the app shell so it loads quickly and registers
-// the app as a PWA. API calls (Generate/Refine) still need a live connection.
+// Caches the app shell for PWA install + quick loads.
+// Uses network-first for the shell so new deploys show up immediately,
+// falling back to cache only when offline. API calls always go to the network.
 
-const CACHE_NAME = 'forum-bible-v1';
+const CACHE_NAME = 'forum-bible-v2';
 const SHELL_ASSETS = [
   '/',
   '/index.html',
@@ -34,15 +35,20 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Never cache API calls - they must always go to the live server
+  // Never cache API calls - they must always go to the live server.
   if (url.pathname.startsWith('/api/')) {
     return;
   }
 
-  // For everything else, try cache first, fall back to network
+  // Network-first: try the live file, fall back to cache if offline.
+  // This means new deploys are picked up right away.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request);
-    })
+    fetch(event.request)
+      .then((response) => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

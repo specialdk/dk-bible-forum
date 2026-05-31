@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-   <meta charset="UTF-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Forum-Bible</title>
     <link rel="stylesheet" href="/styles.css" />
@@ -14,109 +14,163 @@
   </head>
   <body>
     <main class="container">
-      <section class="card hero">
-        <div>
-          <p class="eyebrow">Forum-ready Bible notes and replies</p>
-          <h1>Forum-Bible</h1>
-          <p class="subtitle">
-            Explain a passage in plain language or respond to someone else's comment from a
-            careful Jewish dispensational perspective.
-          </p>
-        </div>
-      </section>
 
-      <section class="card form-card">
-        <div class="mode-switch" role="tablist" aria-label="Mode selector">
-          <button id="modeExplain" class="mode-btn active" type="button">Explain Scripture</button>
-          <button id="modeRespond" class="mode-btn secondary" type="button">Respond to Comment</button>
-          <button id="refineBtn" class="secondary" type="button">Refine</button>
-        </div>
+      <!-- ============ AUTH SCREEN ============ -->
+      <section id="authScreen" class="card auth-card hidden">
+        <p class="eyebrow">Forum-Bible</p>
+        <h1 id="authTitle">Log in</h1>
+        <p class="subtitle">
+          Log in to save your studies and come back to them anytime.
+        </p>
 
-        <label id="inputLabel" for="mainInput">Scripture reference</label>
-        <textarea
-          id="mainInput"
-          rows="5"
-          placeholder="e.g. Hebrews 2:14-18 or Matthew 12"
-        ></textarea>
+        <label for="authEmail">Email</label>
+        <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" />
+
+        <label for="authPassword">Password</label>
+        <input id="authPassword" type="password" autocomplete="current-password" placeholder="At least 8 characters" />
 
         <div class="form-actions">
-          <button id="submitBtn" type="button">Generate</button>
-          <button id="copyBtn" class="secondary" type="button">Copy text</button>
+          <button id="authSubmit" type="button">Log in</button>
         </div>
 
-        <p id="inputHint" class="hint">
-          Example references: Hebrews 1, Psalm 102, Matthew 12:22-32, 1 Thessalonians 4:17
+        <p id="authError" class="status error"></p>
+
+        <p class="hint">
+          <span id="authTogglePrompt">No account yet?</span>
+          <a id="authToggle" href="#" class="link">Create one</a>
         </p>
       </section>
 
-      <section id="status" class="status" aria-live="polite"></section>
+      <!-- ============ APP SCREEN ============ -->
+      <div id="appScreen" class="hidden">
+        <section class="card hero">
+          <div class="hero-row">
+            <div>
+              <p class="eyebrow">Forum-ready Bible notes and replies</p>
+              <h1>Forum-Bible</h1>
+              <p class="subtitle">
+                Explain a passage in plain language or respond to someone else's comment from a
+                careful Jewish dispensational perspective.
+              </p>
+            </div>
+            <div class="account-bar">
+              <span id="userEmail" class="user-email"></span>
+              <button id="myStudiesBtn" class="secondary" type="button">My Studies</button>
+              <button id="logoutBtn" class="secondary" type="button">Log out</button>
+            </div>
+          </div>
+        </section>
 
-      <section id="results" class="results hidden">
+        <section class="card form-card">
+          <div class="mode-switch" role="tablist" aria-label="Mode selector">
+            <button id="modeExplain" class="mode-btn active" type="button">Explain Scripture</button>
+            <button id="modeRespond" class="mode-btn secondary" type="button">Respond to Comment</button>
+            <button id="refineBtn" class="secondary" type="button">Refine</button>
+          </div>
+
+          <label id="inputLabel" for="mainInput">Scripture reference</label>
+          <textarea
+            id="mainInput"
+            rows="5"
+            placeholder="e.g. Hebrews 2:14-18 or Matthew 12"
+          ></textarea>
+
+          <div class="form-actions">
+            <button id="submitBtn" type="button">Generate</button>
+            <button id="copyBtn" class="secondary" type="button">Copy text</button>
+          </div>
+
+          <p id="inputHint" class="hint">
+            Example references: Hebrews 1, Psalm 102, Matthew 12:22-32, 1 Thessalonians 4:17
+          </p>
+        </section>
+
+        <section id="status" class="status" aria-live="polite"></section>
+
+        <section id="results" class="results hidden">
+          <div class="card section-card">
+            <div class="section-header">
+              <h2 id="resultTitle"></h2>
+              <div class="result-actions">
+                <span id="savedNote" class="saved-note hidden"></span>
+                <button id="saveBtn" class="secondary" type="button">Save to My Studies</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="explainResults" class="result-group hidden">
+            <div class="card section-card">
+              <h3>What it says</h3>
+              <p id="whatItSays"></p>
+            </div>
+
+            <div class="card section-card">
+              <h3>Why it says it</h3>
+              <p id="whyItSaysIt"></p>
+            </div>
+
+            <div id="explainLexicalCard" class="card section-card hidden">
+              <h3>Key word note</h3>
+              <p id="explainLexicalNote"></p>
+            </div>
+
+            <div class="card section-card">
+              <h3>Further scriptures</h3>
+              <div id="furtherScriptures"></div>
+            </div>
+          </div>
+
+          <div id="respondResults" class="result-group hidden">
+            <div class="card section-card">
+              <h3>Claim being addressed</h3>
+              <p id="claimSummary"></p>
+            </div>
+
+            <div class="card section-card">
+              <h3>Main issue</h3>
+              <p id="mainIssue"></p>
+            </div>
+
+            <div id="respondLexicalCard" class="card section-card hidden">
+              <h3>Key word note</h3>
+              <p id="respondLexicalNote"></p>
+            </div>
+
+            <div class="card section-card">
+              <h3>Suggested response</h3>
+              <p id="suggestedResponse"></p>
+            </div>
+
+            <div class="card section-card">
+              <h3>Supporting scriptures</h3>
+              <div id="supportingScriptures"></div>
+            </div>
+          </div>
+
+          <div class="card section-card">
+            <h3>Authority references</h3>
+            <div id="authorityReferences" class="authority-list"></div>
+          </div>
+
+          <div class="card section-card">
+            <h3>Forum-ready text (editable)</h3>
+            <textarea id="forumReadyText" rows="10" class="forum-text"></textarea>
+          </div>
+        </section>
+      </div>
+
+      <!-- ============ MY STUDIES SCREEN ============ -->
+      <section id="studiesScreen" class="hidden">
         <div class="card section-card">
           <div class="section-header">
-            <h2 id="resultTitle"></h2>
+            <h2>My Studies</h2>
+            <button id="studiesBackBtn" class="secondary" type="button">Back</button>
           </div>
         </div>
-
-        <div id="explainResults" class="result-group hidden">
-          <div class="card section-card">
-            <h3>What it says</h3>
-            <p id="whatItSays"></p>
-          </div>
-
-          <div class="card section-card">
-            <h3>Why it says it</h3>
-            <p id="whyItSaysIt"></p>
-          </div>
-
-          <div id="explainLexicalCard" class="card section-card hidden">
-            <h3>Key word note</h3>
-            <p id="explainLexicalNote"></p>
-          </div>
-
-          <div class="card section-card">
-            <h3>Further scriptures</h3>
-            <div id="furtherScriptures"></div>
-          </div>
-        </div>
-
-        <div id="respondResults" class="result-group hidden">
-          <div class="card section-card">
-            <h3>Claim being addressed</h3>
-            <p id="claimSummary"></p>
-          </div>
-
-          <div class="card section-card">
-            <h3>Main issue</h3>
-            <p id="mainIssue"></p>
-          </div>
-
-          <div id="respondLexicalCard" class="card section-card hidden">
-            <h3>Key word note</h3>
-            <p id="respondLexicalNote"></p>
-          </div>
-
-          <div class="card section-card">
-            <h3>Suggested response</h3>
-            <p id="suggestedResponse"></p>
-          </div>
-
-          <div class="card section-card">
-            <h3>Supporting scriptures</h3>
-            <div id="supportingScriptures"></div>
-          </div>
-        </div>
-
-        <div class="card section-card">
-          <h3>Authority references</h3>
-          <div id="authorityReferences" class="authority-list"></div>
-        </div>
-
-        <div class="card section-card">
-          <h3>Forum-ready text (editable)</h3>
-<textarea id="forumReadyText" rows="10" class="forum-text"></textarea>
-        </div>
+        <div id="studiesList" class="studies-list"></div>
+        <p id="studiesEmpty" class="hint hidden">You haven't saved any studies yet.</p>
       </section>
+
     </main>
 
     <footer class="site-footer">
@@ -124,17 +178,13 @@
       <p class="small">&copy; 2026 AISkillMeUP. All rights reserved.</p>
     </footer>
 
-    <script src="/app.js?v=5"></script>
-
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Forum-Bible</title>
-    <link rel="stylesheet" href="/styles.css" />
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#0b1020" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Forum-Bible" />
+    <script src="/app.js?v=6"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
