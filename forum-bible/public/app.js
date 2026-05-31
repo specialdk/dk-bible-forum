@@ -67,6 +67,12 @@ const studiesBackBtn = document.getElementById('studiesBackBtn');
 const studiesList = document.getElementById('studiesList');
 const studiesEmpty = document.getElementById('studiesEmpty');
 
+// Passage picker (Explain mode)
+const passagePicker = document.getElementById('passagePicker');
+const bookSelect = document.getElementById('bookSelect');
+const chapterInput = document.getElementById('chapterInput');
+const verseInput = document.getElementById('verseInput');
+
 // State
 let currentMode = 'explain';
 let lastForumText = '';
@@ -88,9 +94,11 @@ function setMode(mode) {
     modeRespondBtn.classList.add('secondary');
 
     inputLabel.textContent = 'Scripture reference';
-    mainInput.placeholder = 'e.g. Hebrews 2:14-18 or Matthew 12';
+    // Show the Book/Chapter/Verse picker, hide the free-text box.
+    if (passagePicker) passagePicker.classList.remove('hidden');
+    if (mainInput) mainInput.classList.add('hidden');
     inputHint.textContent =
-      'Example references: Hebrews 1, Psalm 102, Matthew 12:22-32, 1 Thessalonians 4:17';
+      'Choose a book and chapter. Leave verse blank to study the whole chapter.';
   } else {
     modeRespondBtn.classList.add('active');
     modeRespondBtn.classList.remove('secondary');
@@ -98,10 +106,47 @@ function setMode(mode) {
     modeExplainBtn.classList.add('secondary');
 
     inputLabel.textContent = 'Comment or claim';
+    // Hide the picker, show the free-text box.
+    if (passagePicker) passagePicker.classList.add('hidden');
+    if (mainInput) mainInput.classList.remove('hidden');
     mainInput.placeholder = 'Paste a comment, claim, or short exchange you want to answer';
     inputHint.textContent =
       'Example: "The church has replaced Israel, so Old Testament promises to Israel now belong only to the church."';
   }
+}
+
+// Fill the book dropdown from window.BOOKS (loaded by books.js), default to
+// 1 Corinthians so the family's current study is one click away.
+function populateBooks() {
+  if (!bookSelect || !window.BOOKS) return;
+  bookSelect.innerHTML = '';
+  window.BOOKS.forEach((b) => {
+    const opt = document.createElement('option');
+    opt.value = String(b.no);
+    opt.textContent = b.name;
+    if (b.no === 46) opt.selected = true; // 1 Corinthians
+    bookSelect.appendChild(opt);
+  });
+}
+
+// Read the picker into a reference string ("1 Corinthians 1:18" or
+// "1 Corinthians 1") plus the numbers we sort by. Returns null if incomplete.
+function readPassage() {
+  if (!bookSelect || !window.BOOKS) return null;
+  const bookNo = parseInt(bookSelect.value, 10);
+  const book = window.BOOKS.find((b) => b.no === bookNo);
+  const chapter = parseInt(chapterInput?.value, 10);
+
+  if (!book || !Number.isInteger(chapter) || chapter < 1) return null;
+
+  const verseRaw = parseInt(verseInput?.value, 10);
+  const verse = Number.isInteger(verseRaw) && verseRaw >= 1 ? verseRaw : null;
+
+  const reference = verse
+    ? `${book.name} ${chapter}:${verse}`
+    : `${book.name} ${chapter}`;
+
+  return { reference, book_no: bookNo, chapter, verse: verse ?? 0 };
 }
 
 function setStatus(message, isError = false) {
@@ -233,13 +278,26 @@ function renderResult(mode, data) {
 /* ---- 4. Generate + refine + copy ---------------------------------------- */
 
 async function generate() {
-  if (!mainInput) return;
+  // Build the input differently per mode: picker for Explain, text for Respond.
+  let input;
+  let passage = null;
 
-  const input = mainInput.value.trim();
-  if (!input) {
-    setStatus('Please enter some text first.', true);
-    clearResults();
-    return;
+  if (currentMode === 'explain') {
+    passage = readPassage();
+    if (!passage) {
+      setStatus('Please choose a book and chapter.', true);
+      clearResults();
+      return;
+    }
+    input = passage.reference;
+  } else {
+    if (!mainInput) return;
+    input = mainInput.value.trim();
+    if (!input) {
+      setStatus('Please enter some text first.', true);
+      clearResults();
+      return;
+    }
   }
 
   setStatus('Working...');
@@ -259,11 +317,15 @@ async function generate() {
     renderResult(currentMode, data);
 
     // Remember this result so the Save button knows what to store.
+    // In Explain mode we also carry the Bible-order numbers.
     currentStudy = {
       mode: currentMode,
       title: data.title || '',
       source_input: input,
-      details: data
+      details: data,
+      book_no: passage ? passage.book_no : null,
+      chapter: passage ? passage.chapter : null,
+      verse: passage ? passage.verse : null
     };
     viewingSavedId = null;
 
@@ -416,7 +478,15 @@ async function saveStudy() {
     const res = await fetch('/api/studies', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(currentStudy)
+      body: JSON.stringify({
+        mode: currentStudy.mode,
+        title: currentStudy.title,
+        source_input: currentStudy.source_input,
+        details: currentStudy.details,
+        book_no: currentStudy.book_no,
+        chapter: currentStudy.chapter,
+        verse: currentStudy.verse
+      })
     });
     const data = await res.json();
 
@@ -492,6 +562,8 @@ function renderStudiesList(items) {
 
     const source = document.createElement('p');
     source.className = 'study-source';
+    // For passage studies, show the reference (e.g. "1 Corinthians 1:18").
+    // For Respond studies, show the start of the comment.
     source.textContent = item.source_input || '';
 
     const actions = document.createElement('div');
@@ -587,6 +659,7 @@ if (myStudiesBtn) myStudiesBtn.addEventListener('click', openStudies);
 if (logoutBtn) logoutBtn.addEventListener('click', logout);
 if (studiesBackBtn) studiesBackBtn.addEventListener('click', () => showScreen('app'));
 
+populateBooks();
 setMode('explain');
 setAuthMode('login');
 resetSaveUi();

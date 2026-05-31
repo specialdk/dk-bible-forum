@@ -12,13 +12,20 @@ const router = express.Router();
 router.use(requireAuth);
 
 // --- List my saved studies (lightweight: no full details) ------------------
+// Sorted in Bible order: book, then chapter, then verse. Studies with no
+// book (e.g. Respond-mode replies) have NULL book_no and sort LAST, by date.
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, mode, title, source_input, created_at
+      `SELECT id, mode, title, source_input, book_no, chapter, verse, created_at
          FROM studies
         WHERE user_id = $1
-        ORDER BY created_at DESC`,
+        ORDER BY
+          book_no IS NULL,           -- false (has a book) sorts before true (no book)
+          book_no ASC,
+          chapter ASC,
+          verse ASC,
+          created_at DESC`,
       [req.userId]
     );
     return res.json(result.rows);
@@ -32,7 +39,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, mode, title, source_input, details, created_at
+      `SELECT id, mode, title, source_input, details, book_no, chapter, verse, created_at
          FROM studies
         WHERE id = $1 AND user_id = $2`,
       [req.params.id, req.userId]
@@ -49,17 +56,25 @@ router.get('/:id', async (req, res) => {
 // --- Save a new study ------------------------------------------------------
 router.post('/', async (req, res) => {
   try {
-    const { mode, title, source_input, details } = req.body ?? {};
+    const { mode, title, source_input, details, book_no, chapter, verse } = req.body ?? {};
 
     if (!mode || !details) {
       return res.status(400).json({ error: 'Missing study data.' });
     }
 
+    // Normalise the Bible-order fields. They may be absent (Respond mode) or
+    // partial (chapter with no verse). Missing book/chapter stay NULL so they
+    // sort to the bottom; missing verse becomes 0 so a whole-chapter study
+    // sorts above its individual verses.
+    const bookNo = Number.isInteger(book_no) ? book_no : null;
+    const chap = Number.isInteger(chapter) ? chapter : null;
+    const vrs = Number.isInteger(verse) ? verse : (bookNo ? 0 : null);
+
     const result = await pool.query(
-      `INSERT INTO studies (user_id, mode, title, source_input, details)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, mode, title, source_input, created_at`,
-      [req.userId, mode, title || null, source_input || null, JSON.stringify(details)]
+      `INSERT INTO studies (user_id, mode, title, source_input, details, book_no, chapter, verse)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id, mode, title, source_input, book_no, chapter, verse, created_at`,
+      [req.userId, mode, title || null, source_input || null, JSON.stringify(details), bookNo, chap, vrs]
     );
 
     return res.json(result.rows[0]);

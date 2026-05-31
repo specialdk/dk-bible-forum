@@ -1,6 +1,6 @@
 // db.js
 // One shared connection to the Postgres database, plus a function that
-// makes sure our two tables exist. Safe to run on every startup.
+// makes sure our tables and columns exist. Safe to run on every startup.
 
 import pg from 'pg';
 const { Pool } = pg;
@@ -44,6 +44,17 @@ export async function ensureTables() {
       details      JSONB NOT NULL,
       created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+  `);
+
+  // Bible-order sorting columns. CREATE TABLE above won't add columns to an
+  // existing table, so we add them here. "IF NOT EXISTS" makes this safe to
+  // run on every boot - it does nothing once the columns are present.
+  // book_no = canonical book number (Genesis 1 ... Revelation 66).
+  // verse defaults to 0 so a whole-chapter study sorts above its verses.
+  await pool.query(`
+    ALTER TABLE studies ADD COLUMN IF NOT EXISTS book_no INTEGER;
+    ALTER TABLE studies ADD COLUMN IF NOT EXISTS chapter INTEGER;
+    ALTER TABLE studies ADD COLUMN IF NOT EXISTS verse   INTEGER;
   `);
 
   console.log('Database tables are ready.');

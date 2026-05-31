@@ -402,3 +402,60 @@ input[type="text"] {
     flex: 1;
   }
 }
+
+/* =========================================================================
+   Passage picker (Book / Chapter / Verse)
+   ========================================================================= */
+
+.passage-picker {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.picker-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.picker-field:first-child {
+  flex: 2;
+  min-width: 180px;
+}
+
+.picker-field:not(:first-child) {
+  flex: 1;
+  min-width: 90px;
+}
+
+.picker-label {
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.picker-label em {
+  font-weight: normal;
+  font-style: normal;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+#bookSelect,
+#chapterInput,
+#verseInput {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #0f1730;
+  color: var(--text);
+  font-size: 1rem;
+  margin-bottom: 0;
+}
+
+#bookSelect {
+  cursor: pointer;
+}

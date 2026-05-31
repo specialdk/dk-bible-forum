@@ -3,12 +3,13 @@
 // Uses network-first for the shell so new deploys show up immediately,
 // falling back to cache only when offline. API calls always go to the network.
 
-const CACHE_NAME = 'forum-bible-v2';
+const CACHE_NAME = 'forum-bible-v3';
 const SHELL_ASSETS = [
   '/',
   '/index.html',
   '/styles.css',
   '/app.js',
+  '/books.js',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'

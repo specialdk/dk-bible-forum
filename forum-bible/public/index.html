@@ -69,10 +69,26 @@
           </div>
 
           <label id="inputLabel" for="mainInput">Scripture reference</label>
+
+          <div id="passagePicker" class="passage-picker">
+            <div class="picker-field">
+              <span class="picker-label">Book</span>
+              <select id="bookSelect"></select>
+            </div>
+            <div class="picker-field">
+              <span class="picker-label">Chapter</span>
+              <input id="chapterInput" type="number" min="1" placeholder="1" />
+            </div>
+            <div class="picker-field">
+              <span class="picker-label">Verse <em>(optional)</em></span>
+              <input id="verseInput" type="number" min="1" placeholder="all" />
+            </div>
+          </div>
+
           <textarea
             id="mainInput"
             rows="5"
-            placeholder="e.g. Hebrews 2:14-18 or Matthew 12"
+            placeholder="Paste a comment, claim, or short exchange you want to answer"
           ></textarea>
 
           <div class="form-actions">
@@ -178,7 +194,8 @@
       <p class="small">&copy; 2026 AISkillMeUP. All rights reserved.</p>
     </footer>
 
-    <script src="/app.js?v=6"></script>
+    <script src="/books.js?v=1"></script>
+    <script src="/app.js?v=7"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
