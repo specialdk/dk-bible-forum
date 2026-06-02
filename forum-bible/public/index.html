@@ -79,9 +79,13 @@
               <span class="picker-label">Chapter</span>
               <input id="chapterInput" type="number" min="1" placeholder="1" />
             </div>
-            <div class="picker-field">
-              <span class="picker-label">Verse <em>(optional)</em></span>
+           <div class="picker-field">
+              <span class="picker-label">From verse <em>(optional)</em></span>
               <input id="verseInput" type="number" min="1" placeholder="all" />
+            </div>
+            <div class="picker-field">
+              <span class="picker-label">To verse <em>(optional)</em></span>
+              <input id="verseEndInput" type="number" min="1" placeholder="—" />
             </div>
           </div>
 
@@ -195,7 +199,7 @@
     </footer>
 
     <script src="/books.js?v=1"></script>
-    <script src="/app.js?v=7"></script>
+    <script src="/app.js?v=8"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {

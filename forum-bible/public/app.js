@@ -72,6 +72,7 @@ const passagePicker = document.getElementById('passagePicker');
 const bookSelect = document.getElementById('bookSelect');
 const chapterInput = document.getElementById('chapterInput');
 const verseInput = document.getElementById('verseInput');
+const verseEndInput = document.getElementById('verseEndInput');
 
 // State
 let currentMode = 'explain';
@@ -142,10 +143,18 @@ function readPassage() {
   const verseRaw = parseInt(verseInput?.value, 10);
   const verse = Number.isInteger(verseRaw) && verseRaw >= 1 ? verseRaw : null;
 
-  const reference = verse
-    ? `${book.name} ${chapter}:${verse}`
-    : `${book.name} ${chapter}`;
+  const verseEndRaw = parseInt(verseEndInput?.value, 10);
+  const verseEnd = Number.isInteger(verseEndRaw) && verseEndRaw >= 1 ? verseEndRaw : null;
 
+  let reference;
+  if (verse && verseEnd && verseEnd > verse) {
+    reference = `${book.name} ${chapter}:${verse}-${verseEnd}`;
+  } else if (verse) {
+    reference = `${book.name} ${chapter}:${verse}`;
+  } else {
+    reference = `${book.name} ${chapter}`;
+  }
+  
   return { reference, book_no: bookNo, chapter, verse: verse ?? 0 };
 }
 
